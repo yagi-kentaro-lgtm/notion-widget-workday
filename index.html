@@ -126,6 +126,73 @@
     const progressTotal = document.getElementById('progressTotal');
     const includeToday = document.getElementById('includeToday');
 
+    // --- 日付ユーティリティ（JST基準） ---
+    const TZ = 'Asia/Tokyo';
+    const WD = ['日','月','火','水','木','金','土'];
+    const LAST_BUSINESS_DATE = new Date('2025-12-30T00:00:00+09:00');
+
+    function ymdJST(d){
+      const parts = new Intl.DateTimeFormat('ja-JP', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(d);
+      const y = parts.find(p=>p.type==='year').value;
+      const m = parts.find(p=>p.type==='month').value;
+      const da = parts.find(p=>p.type==='day').value;
+      return `${y}-${m}-${da}`;
+    }
+    function ymdToDateJST(ymd){
+      return new Date(`${ymd}T00:00:00+09:00`);
+    }
+    function addDaysJST(d, n){
+      const nd = new Date(d.getTime());
+      nd.setDate(nd.getDate() + n);
+      return nd;
+    }
+    function getJSTToday(){
+      const now = new Date();
+      const ymd = ymdJST(now);
+      return ymdToDateJST(ymd);
+    }
+
+    // --- 2025年 日本の祝日（+振替）---
+    const HOLIDAYS_2025 = new Set([
+      '2025-01-01', // 元日
+      '2025-01-13', // 成人の日（第2月曜）
+      '2025-02-11', // 建国記念の日
+      '2025-02-23', // 天皇誕生日
+      '2025-02-24', // 振替休日（2/23）
+      '2025-03-20', // 春分の日
+      '2025-04-29', // 昭和の日
+      '2025-05-03', // 憲法記念日
+      '2025-05-04', // みどりの日
+      '2025-05-05', // こどもの日
+      '2025-05-06', // 振替休日（5/4）
+      '2025-07-21', // 海の日（第3月曜）
+      '2025-08-11', // 山の日
+      '2025-09-15', // 敬老の日（第3月曜）
+      '2025-09-23', // 秋分の日
+      '2025-10-13', // スポーツの日（第2月曜）
+      '2025-11-03', // 文化の日
+      '2025-11-23', // 勤労感謝の日
+      '2025-11-24', // 振替休日（11/23）
+    ]);
+
+    function isWeekend(d){
+      // JST 00:00で生成しているためgetDayでOK
+      const dow = new Date(d.getTime()).getDay();
+      return dow === 0 || dow === 6; // 日 or 土
+    }
+    function isHoliday(d){
+      return HOLIDAYS_2025.has(ymdJST(d));
+    }
+    function isBusinessDay(d){
+      if (d > LAST_BUSINESS_DATE) return false;
+      return !isWeekend(d) && !isHoliday(d);
+    }
+
+    function weekdayJ(d){
+      const dow = new Date(d.getTime()).getDay();
+      return WD[dow];
+    }
+
     function setDays(value){
       if(!daysLeftEl) return;
       const str = String(value);
@@ -133,7 +200,6 @@
         ? `<span class="digit d${ch}">${ch}</span>`
         : `<span>${ch}</span>`).join('');
     }
-
     function updateColor(days) {
       if (!daysLeftEl) return;
       if (days >= 20) {
@@ -148,39 +214,82 @@
       }
     }
 
-    // 仮データ
-    let remaining = 45;
-    let total = 245;
-    let elapsed = total - remaining;
+    function countBusinessDays(start, end){
+      let c = 0;
+      for(let d = new Date(start.getTime()); d <= end; d = addDaysJST(d, 1)){
+        if (isBusinessDay(d)) c++;
+      }
+      return c;
+    }
 
-    setDays(remaining);
-    updateColor(remaining);
-    progressElapsed.textContent = `経過: ${elapsed}日`;
-    progressTotal.textContent = `合計: ${total}日`;
-    const percent = (elapsed / total) * 100;
-    progressBar.style.width = `${percent}%`;
+    function nextNBusinessDays(from, n, includeSelf=false){
+      const out = [];
+      let d = new Date(from.getTime());
+      if (includeSelf && isBusinessDay(d)) out.push(new Date(d.getTime()));
+      while (out.length < n && d <= LAST_BUSINESS_DATE){
+        d = addDaysJST(d,1);
+        if (isBusinessDay(d)) out.push(new Date(d.getTime()));
+      }
+      return out.slice(0,n);
+    }
 
-    includeToday.addEventListener('change', (e) => {
-      remaining = e.target.checked ? 46 : 45; // 仮の切り替え
+    function fmtMonthCount(year, month, endDay=null){
+      const start = ymdToDateJST(`${year}-${String(month).padStart(2,'0')}-01`);
+      const last = endDay ? ymdToDateJST(`${year}-${String(month).padStart(2,'0')}-${String(endDay).padStart(2,'0')}`)
+                          : ymdToDateJST(`${year}-${String(month).padStart(2,'0')}-${String(new Date(year, month, 0).getDate()).padStart(2,'0')}`);
+      return countBusinessDays(start, last);
+    }
+
+    function updateAll(){
+      const today = getJSTToday();
+      const include = includeToday?.checked ?? false;
+
+      // 残り営業日（今日を含む/含まない）
+      const start = include ? today : addDaysJST(today, 1);
+      let remaining = 0;
+      for(let d = new Date(start.getTime()); d <= LAST_BUSINESS_DATE; d = addDaysJST(d,1)){
+        if (isBusinessDay(d)) remaining++;
+      }
       setDays(remaining);
       updateColor(remaining);
-    });
 
-    // 月別営業日数（ダミー）
-    document.getElementById('monthCounts').innerHTML = `
-      <div class="month-card"><span class="month-name">10月</span><span class="month-count">23日</span></div>
-      <div class="month-card"><span class="month-name">11月</span><span class="month-count">20日</span></div>
-      <div class="month-card"><span class="month-name">12月</span><span class="month-count">21日</span></div>
-    `;
+      // 直近5営業日
+      const upcoming = nextNBusinessDays(today, 5, include);
+      const upcomingEl = document.getElementById('upcoming');
+      upcomingEl.innerHTML = upcoming.map(d => {
+        const [y,m,da] = ymdJST(d).split('-');
+        return `<div class="date-item"><span>${parseInt(m)}/${parseInt(da)}(${weekdayJ(d)})</span><span></span></div>`;
+      }).join('');
 
-    // 直近5営業日（ダミー）
-    document.getElementById('upcoming').innerHTML = `
-      <div class="date-item"><span>10/28(月)</span><span>3日後</span></div>
-      <div class="date-item"><span>10/29(火)</span><span>4日後</span></div>
-      <div class="date-item"><span>10/30(水)</span><span>5日後</span></div>
-      <div class="date-item"><span>10/31(木)</span><span>6日後</span></div>
-      <div class="date-item"><span>11/01(金)</span><span>7日後</span></div>
-    `;
+      // 月別営業日数（固定: 10月・11月・12月(～30日)）
+      const oct = fmtMonthCount(2025,10);
+      const nov = fmtMonthCount(2025,11);
+      const dec = fmtMonthCount(2025,12,30);
+      const monthCountsEl = document.getElementById('monthCounts');
+      monthCountsEl.innerHTML = `
+        <div class="month-card"><span class="month-name">10月</span><span class="month-count">${oct}日</span></div>
+        <div class="month-card"><span class="month-name">11月</span><span class="month-count">${nov}日</span></div>
+        <div class="month-card"><span class="month-name">12月</span><span class="month-count">${dec}日</span></div>
+      `;
+
+      // プログレス（今年の営業日: 1/1 ～ 12/30）
+      const yearStart = ymdToDateJST('2025-01-01');
+      const total = countBusinessDays(yearStart, LAST_BUSINESS_DATE);
+      // 経過は「今日を含む」でも棒の扱いは同一（今日以前まで）
+      const elapsedEnd = addDaysJST(today,-1);
+      let elapsed = 0;
+      if (elapsedEnd >= yearStart){
+        elapsed = countBusinessDays(yearStart, elapsedEnd);
+      }
+      progressElapsed.textContent = `経過: ${elapsed}日`;
+      progressTotal.textContent = `合計: ${total}日`;
+      progressBar.style.width = `${Math.min(100, (elapsed/total)*100)}%`;
+    }
+
+    includeToday.addEventListener('change', updateAll);
+
+    // 初期化
+    updateAll();
   </script>
 </body>
 </html>
