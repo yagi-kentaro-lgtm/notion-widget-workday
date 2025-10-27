@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>2025 残り営業日ウィジェット</title>
+  <title>2025 残り営業日ウィジェット（上品ラベル＋スイッチ風トグル）</title>
   <style>
     :root {
-      --bg: #ffffff;
-      --fg: #111111;
+      --bg: radial-gradient(circle at top left, #f7f7f9, #eaeaf0);
+      --fg: #0f0f0f;
       --muted: #6b7280;
-      --accent: #ef4444; /* 赤系: 焦燥感 */
-      --card: #f8fafc;
-      --border: #e5e7eb;
+      --card: #ffffffb3;
+      --border: rgba(0,0,0,0.08);
+      --accent: #e11d48;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
@@ -19,337 +19,168 @@
       margin: 0;
       background: var(--bg);
       color: var(--fg);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans JP", "Apple Color Emoji", "Segoe UI Emoji";
+      font-family: 'Inter Tight', 'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
-    .container {
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 20px;
-    }
+
+    .container { min-height: 100vh; display: grid; place-items: center; padding: 10px; }
+
     .widget {
-      width: min(720px, 96vw);
-      background: linear-gradient(180deg, #fff, #fff), var(--card);
+      width: 1100px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.96), rgba(245,245,250,0.92));
+      backdrop-filter: blur(16px);
       border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 28px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+      border-radius: 28px;
+      padding: 34px 32px 20px;
+      box-shadow: 0 16px 32px rgba(0,0,0,0.12), inset 0 1px 2px rgba(255,255,255,0.6);
       position: relative;
       overflow: hidden;
     }
-    /* うっすら焦りの演出: 右上に赤いグロー */
-    .widget::after {
-      content: "";
-      position: absolute;
-      top: -40px; right: -40px;
-      width: 180px; height: 180px;
-      background: radial-gradient(closest-side, rgba(239,68,68,0.18), rgba(239,68,68,0));
-      filter: blur(6px);
-      pointer-events: none;
-    }
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
-    .title {
-      font-size: clamp(16px, 2.8vw, 20px);
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .pill {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: #fee2e2; color: #991b1b;
-      border: 1px solid #fecaca; border-radius: 999px;
-      padding: 4px 10px; font-size: 12px; font-weight: 600;
-    }
-    .main {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 18px;
-    }
-    .count {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      align-items: end;
-      gap: 18px;
-    }
-    .days {
-      font-size: clamp(56px, 12vw, 108px);
-      font-weight: 900;
-      line-height: 0.9;
-      letter-spacing: -0.02em;
-      position: relative;
-      isolation: isolate;
-      animation: urgency 2.6s infinite ease-in-out;
-    }
-    @keyframes urgency {
-      0% { transform: translateY(0); }
-      45% { transform: translateY(0); }
-      46% { transform: translateY(-1px); }
-      47% { transform: translateY(0); }
-      100% { transform: translateY(0); }
-    }
-    .label {
-      display: flex; flex-direction: column; gap: 4px;
-      margin-bottom: 8px;
-    }
-    .label .big { font-size: clamp(18px, 2.6vw, 24px); font-weight: 800; }
-    .label .sub { font-size: 13px; color: var(--muted); }
 
-    .progress {
-      width: 100%; height: 12px; border-radius: 999px;
-      background: #f1f5f9; border: 1px solid var(--border);
-      overflow: hidden; position: relative;
-    }
-    .bar { height: 100%; width: 0; background: linear-gradient(90deg, #ef4444, #dc2626); transition: width 1s cubic-bezier(.4,0,.2,1); }
-    .progress-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .title { font-size: 20px; font-weight: 700; letter-spacing: 0.02em; }
+    .pill { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 600; }
 
-    .controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .toggle {
-      appearance: none; width: 46px; height: 26px; border-radius: 999px; position: relative; outline: none; cursor: pointer;
-      background: #e5e7eb; border: 1px solid var(--border); transition: background .3s ease;
-    }
-    .toggle:checked { background: #fecaca; border-color: #fca5a5; }
-    .toggle::after {
-      content: ""; position: absolute; top: 50%; left: 2px; transform: translateY(-50%);
-      width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 1px solid var(--border); transition: left .3s ease;
-      box-shadow: 0 1px 2px rgba(0,0,0,.06);
-    }
-    .toggle:checked::after { left: 24px; }
-    .control-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .main { display: grid; grid-template-columns: 1.8fr 1fr 1fr; gap: 24px; align-items: start; }
 
-    .list {
-      margin-top: 6px; display: grid; gap: 8px; grid-template-columns: 1fr; font-size: 13px; color: #374151;
-    }
-    .date-item { display: flex; justify-content: space-between; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: #fff; }
+    .days-wrapper { display: flex; align-items: flex-end; justify-content: center; gap: 18px; margin-top: 0; }
 
-    .footer {
-      margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--muted);
-      font-size: 12px;
-    }
-    .deadline { font-weight: 700; color: #991b1b; }
+    .days { font-size: clamp(130px, 22vw, 230px); font-weight: 600; line-height: 0.8; letter-spacing: -0.01em; color: #111; text-shadow: 0 10px 24px rgba(0,0,0,0.3); transition: color 600ms ease, text-shadow 600ms ease, transform 1.2s ease; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1, 'kern' 1; font-stretch: 96%; animation: floatNumber 4s ease-in-out infinite; position: relative; top: 2px; }
+    @keyframes floatNumber { 0%, 100% { transform: translateY(0px); filter: drop-shadow(0 6px 10px rgba(0,0,0,0.2)); } 50% { transform: translateY(-5px); filter: drop-shadow(0 10px 14px rgba(0,0,0,0.25)); } }
 
-    @media (min-width: 680px) {
-      .main { grid-template-columns: 1.4fr 1fr; align-items: center; }
-      .list { margin-top: 0; }
-    }
+    /* ラベルを上品に */
+    .label-block { display: flex; flex-direction: column; align-items: center; gap: 8px; translate: 0 0; }
+    .label { font-size: 46px; font-weight: 700; color: #4b5563; letter-spacing: 0.05em; line-height: 1; text-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+
+    /* スイッチ風トグル */
+    .switch { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); font-weight: 600; }
+    .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .track { position: relative; width: 48px; height: 26px; background: rgba(0,0,0,0.12); border: 1px solid var(--border); border-radius: 999px; transition: background .25s ease, border-color .25s ease; }
+    .thumb { position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.18); transition: left .25s cubic-bezier(.4,0,.2,1); }
+    .switch input:checked + .track { background: linear-gradient(90deg, #fca5a5, #fb7185); border-color: #fda4af; }
+    .switch input:checked + .track .thumb { left: 24px; }
+    .switch-text { user-select: none; }
+
+    /* プログレスバー */
+    .progress-wrapper { margin-top: 20px; }
+    .progress { width: 100%; height: 12px; background: rgba(0,0,0,0.08); border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(255,255,255,0.4); }
+    .bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), #fb7185); transition: width 1s ease-in-out; border-radius: 999px; }
+    .progress-text { display: flex; justify-content: space-between; margin-top: 4px; font-size: 13px; color: var(--muted); }
+
+    .month-grid { display: flex; flex-direction: column; gap: 6px; }
+    .month-card { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.85); border: 1px solid var(--border); border-radius: 12px; padding: 8px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: transform 0.25s ease, box-shadow 0.25s ease; }
+    .month-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+    .month-name { font-size: 14px; color: var(--muted); font-weight: 600; }
+    .month-count { font-size: 22px; font-weight: 700; color: var(--fg); font-variant-numeric: tabular-nums; }
+
+    .footer { text-align: left; font-size: 12px; color: var(--muted); margin-top: 6px; margin-left: 2px; }
+
+    .list { margin-top: 4px; display: grid; gap: 6px; grid-template-columns: 1fr; font-size: 13px; color: #374151; }
+    .date-item { display: flex; justify-content: space-between; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,0.85); }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="widget" role="group" aria-label="2025年の残り営業日ウィジェット">
+    <div class="widget">
       <div class="header">
-        <div class="title">
-          <span>2025年・残り営業日</span>
-          <span class="pill">最終営業日: <span id="lastBiz" class="deadline">2025/12/30</span></span>
-        </div>
-        <div class="controls" aria-label="設定">
-          <label class="control-label" for="includeToday">今日を含める</label>
-          <input id="includeToday" class="toggle" type="checkbox" />
-        </div>
+        <div class="title">2025年・残り営業日</div>
+        <div class="pill">最終営業日: 2025/12/30</div>
       </div>
 
       <div class="main">
-        <div>
-          <div class="count">
-            <div class="days" id="daysLeft">--</div>
-            <div class="label">
-              <div class="big">営業日<span id="includeHint" style="font-size:14px; color:#991b1b; font-weight:700; margin-left:8px; display:none;">（今日含む）</span></div>
-              <div class="sub" id="rangeText">2025年1月1日〜12月30日の営業日進捗</div>
+        <section>
+          <div class="days-wrapper">
+            <div class="days" id="daysLeft">45</div>
+            <div class="label-block">
+              <label class="switch" aria-label="今日を含むトグル">
+                <input type="checkbox" id="includeToday" />
+                <span class="track"><span class="thumb"></span></span>
+                <span class="switch-text">今日を含む</span>
+              </label>
+              <div class="label">営業日</div>
             </div>
           </div>
-          <div class="progress" aria-label="進捗">
-            <div class="bar" id="progressBar"></div>
+          <div class="progress-wrapper">
+            <div class="progress"><div class="bar" id="progressBar"></div></div>
+            <div class="progress-text"><span id="progressElapsed">経過: --日</span><span id="progressTotal">合計: --日</span></div>
           </div>
-          <div class="progress-meta">
-            <div>経過: <span id="elapsedBiz">--</span> 日</div>
-            <div>合計: <span id="totalBiz">--</span> 日</div>
-          </div>
-        </div>
-        <div>
-          <div class="sub" style="margin-bottom:6px; font-weight:700;">次の営業日（5件）</div>
+        </section>
+        <section>
+          <div class="sub" style="margin-bottom:4px; font-weight:700;">次の営業日（5件）</div>
           <div class="list" id="upcoming"></div>
-        </div>
-      </div>
-
-      <div class="footer">
-        <div>土日・祝祭日を除外。<span class="deadline">12/30</span>を最終営業日として計算。</div>
-        <div id="todayInfo"></div>
+        </section>
+        <section>
+          <div class="sub" style="margin-bottom:4px; font-weight:700;">10–12月の営業日数</div>
+          <div class="month-grid" id="monthCounts"></div>
+          <div class="footer">土日・祝祭日を除外。最終営業日は12/30。</div>
+        </section>
       </div>
     </div>
   </div>
 
   <script>
-    // === 設定 ===
-    const CUT_OFF = new Date('2025-12-30T00:00:00'); // この日までを営業日とする（この日を含む）
-    const YEAR_START = new Date('2025-01-01T00:00:00');
-
-    // 日本の祝日（2025）※必要に応じて編集してください
-    // 振替休日を含む
-    const HOLIDAYS_2025 = new Set([
-      '2025-01-01', // 元日
-      '2025-01-13', // 成人の日（第2月曜）
-      '2025-02-11', // 建国記念の日
-      '2025-02-23', // 天皇誕生日
-      '2025-02-24', // 振替休日
-      '2025-03-20', // 春分の日（2025）
-      '2025-04-29', // 昭和の日
-      '2025-05-03', // 憲法記念日
-      '2025-05-04', // みどりの日
-      '2025-05-05', // こどもの日
-      '2025-05-06', // 振替休日
-      '2025-07-21', // 海の日（第3月曜）
-      '2025-08-11', // 山の日
-      '2025-09-15', // 敬老の日（第3月曜）
-      '2025-09-23', // 秋分の日（2025）
-      '2025-10-13', // スポーツの日（第2月曜）
-      '2025-11-03', // 文化の日
-      '2025-11-23', // 勤労感謝の日
-      '2025-11-24', // 振替休日
-    ]);
-
-    // ユーティリティ
-    const fmt = (d) => d.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' });
-    const ymd = (d) => {
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    }
-
-    const isWeekend = (d) => {
-      const w = d.getDay();
-      return w === 0 || w === 6; // 日=0, 土=6
-    }
-
-    const isHoliday = (d) => HOLIDAYS_2025.has(ymd(d));
-
-    const isBusinessDay = (d) => {
-      if (d < YEAR_START || d > CUT_OFF) return false;
-      return !isWeekend(d) && !isHoliday(d);
-    }
-
-    function enumerateBusinessDays(start, endInclusive) {
-      const list = [];
-      const cur = new Date(start.getTime());
-      while (cur <= endInclusive) {
-        if (isBusinessDay(cur)) list.push(new Date(cur));
-        cur.setDate(cur.getDate() + 1);
-      }
-      return list;
-    }
-
-    // メイン計算
-    function compute(includeToday) {
-      const now = new Date();
-      // 0時基準の「今日」
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-      // 2025年内のみ対象
-      const startRange = YEAR_START;
-      const endRange = CUT_OFF;
-
-      const allBiz = enumerateBusinessDays(startRange, endRange);
-      const total = allBiz.length;
-
-      // 経過営業日: 年初〜「昨日」まで
-      const yesterday = new Date(today.getTime());
-      yesterday.setDate(yesterday.getDate() - 1);
-      const elapsed = allBiz.filter(d => d <= yesterday).length;
-
-      // 残り営業日
-      let startCount = new Date(today.getTime());
-      if (!includeToday) {
-        startCount.setDate(startCount.getDate() + 1); // 今日を含めない
-      }
-      const remainingBiz = enumerateBusinessDays(startCount, endRange);
-      const remaining = remainingBiz.length;
-
-      // 次の営業日（5件）
-      const nextList = [];
-      for (const d of enumerateBusinessDays(today, endRange)) {
-        if (!includeToday && ymd(d) === ymd(today)) continue;
-        nextList.push(d);
-        if (nextList.length >= 5) break;
-      }
-
-      return { total, elapsed, remaining, nextList, today, now };
-    }
-
-    // UI反映
     const daysLeftEl = document.getElementById('daysLeft');
-    const elapsedBizEl = document.getElementById('elapsedBiz');
-    const totalBizEl = document.getElementById('totalBiz');
-    const progressBarEl = document.getElementById('progressBar');
-    const upcomingEl = document.getElementById('upcoming');
-    const todayInfoEl = document.getElementById('todayInfo');
-    const includeTodayToggle = document.getElementById('includeToday');
-    const includeHint = document.getElementById('includeHint');
+    const progressBar = document.getElementById('progressBar');
+    const progressElapsed = document.getElementById('progressElapsed');
+    const progressTotal = document.getElementById('progressTotal');
+    const includeToday = document.getElementById('includeToday');
 
-    function render() {
-      const includeToday = includeTodayToggle.checked;
-      const { total, elapsed, remaining, nextList, today, now } = compute(includeToday);
+    function setDays(value){
+      if(!daysLeftEl) return;
+      const str = String(value);
+      daysLeftEl.innerHTML = str.split('').map(ch => /\d/.test(ch)
+        ? `<span class="digit d${ch}">${ch}</span>`
+        : `<span>${ch}</span>`).join('');
+    }
 
-      daysLeftEl.textContent = Math.max(0, remaining);
-      includeHint.style.display = includeToday ? 'inline' : 'none';
-      elapsedBizEl.textContent = elapsed;
-      totalBizEl.textContent = total;
-
-      const progress = total === 0 ? 1 : Math.min(1, Math.max(0, elapsed / total));
-      progressBarEl.style.width = (progress * 100).toFixed(1) + '%';
-
-      // 次の営業日一覧
-      upcomingEl.innerHTML = '';
-      if (nextList.length === 0) {
-        const div = document.createElement('div');
-        div.className = 'date-item';
-        div.textContent = '今年の営業日は終了しました。おつかれさまでした。';
-        upcomingEl.appendChild(div);
+    function updateColor(days) {
+      if (!daysLeftEl) return;
+      if (days >= 20) {
+        daysLeftEl.style.color = '#111';
+        daysLeftEl.style.textShadow = '0 10px 24px rgba(0,0,0,0.3)';
+      } else if (days >= 10) {
+        daysLeftEl.style.color = '#b91c1c';
+        daysLeftEl.style.textShadow = '0 14px 30px rgba(185,28,28,0.45)';
       } else {
-        nextList.forEach(d => {
-          const row = document.createElement('div');
-          row.className = 'date-item';
-          const left = document.createElement('div');
-          left.textContent = fmt(d);
-          const right = document.createElement('div');
-          right.textContent = `${daysUntil(d)}日後`;
-          row.appendChild(left); row.appendChild(right);
-          upcomingEl.appendChild(row);
-        });
+        daysLeftEl.style.color = '#7f1d1d';
+        daysLeftEl.style.textShadow = '0 20px 44px rgba(127,29,29,0.55)';
       }
-
-      // 今日の状態
-      const isBiz = isBusinessDay(today);
-      const state = isBiz ? '本日は営業日' : '本日は休業日';
-      todayInfoEl.textContent = `${state}（${fmt(today)}）`;
     }
 
-    function daysUntil(targetDate) {
-      const t0 = new Date();
-      const start = new Date(t0.getFullYear(), t0.getMonth(), t0.getDate());
-      const end = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
-      return Math.round((end - start) / (1000*60*60*24));
-    }
+    // 仮データ
+    let remaining = 45;
+    let total = 245;
+    let elapsed = total - remaining;
 
-    includeTodayToggle.addEventListener('change', render);
+    setDays(remaining);
+    updateColor(remaining);
+    progressElapsed.textContent = `経過: ${elapsed}日`;
+    progressTotal.textContent = `合計: ${total}日`;
+    const percent = (elapsed / total) * 100;
+    progressBar.style.width = `${percent}%`;
 
-    // 初期状態: 「今日を含める」= 営業日の焦りを強調
-    includeTodayToggle.checked = true;
-    render();
+    includeToday.addEventListener('change', (e) => {
+      remaining = e.target.checked ? 46 : 45; // 仮の切り替え
+      setDays(remaining);
+      updateColor(remaining);
+    });
 
-    // 深夜跨ぎで表示を更新
-    setInterval(() => {
-      const now = new Date();
-      if (now.getMinutes() === 0 && now.getSeconds() < 2) render();
-    }, 1000);
+    // 月別営業日数（ダミー）
+    document.getElementById('monthCounts').innerHTML = `
+      <div class="month-card"><span class="month-name">10月</span><span class="month-count">23日</span></div>
+      <div class="month-card"><span class="month-name">11月</span><span class="month-count">20日</span></div>
+      <div class="month-card"><span class="month-name">12月</span><span class="month-count">21日</span></div>
+    `;
+
+    // 直近5営業日（ダミー）
+    document.getElementById('upcoming').innerHTML = `
+      <div class="date-item"><span>10/28(月)</span><span>3日後</span></div>
+      <div class="date-item"><span>10/29(火)</span><span>4日後</span></div>
+      <div class="date-item"><span>10/30(水)</span><span>5日後</span></div>
+      <div class="date-item"><span>10/31(木)</span><span>6日後</span></div>
+      <div class="date-item"><span>11/01(金)</span><span>7日後</span></div>
+    `;
   </script>
 </body>
 </html>
